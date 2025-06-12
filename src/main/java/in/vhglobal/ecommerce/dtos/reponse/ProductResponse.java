@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,4 +20,6 @@ public class ProductResponse {
     private Double price;
     private Integer minimumQuantity;
     private ProductSubCategoryResponse productSubCategory;
+    private String primaryImageUrl;
+    private Set<String> additionalImageUrls;
 }

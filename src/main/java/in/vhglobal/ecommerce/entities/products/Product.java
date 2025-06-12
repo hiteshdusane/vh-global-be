@@ -1,10 +1,8 @@
 package in.vhglobal.ecommerce.entities.products;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import java.util.List;
 
 @Data
 @Entity
@@ -34,7 +32,14 @@ public class Product {
     @Column(name = "minimum_quantity", nullable = false)
     private Integer minimumQuantity;
 
+    @Column(name = "image_path")
+    private String imagePath;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_sub_category_id", nullable = false)
     private ProductSubCategory productSubCategory;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<ProductAdditionalInfo> productAdditionalInfos;
 }
