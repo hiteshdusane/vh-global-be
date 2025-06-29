@@ -11,7 +11,6 @@ import in.vhglobal.ecommerce.services.ProductMainCategoryService;
 import in.vhglobal.ecommerce.services.ProductService;
 import in.vhglobal.ecommerce.services.ProductSubCategoryService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +32,6 @@ import java.util.List;
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Products", description = "Product management APIs")
 public class ProductsController {
 
     private final ProductMainCategoryService productMainCategoryService;
@@ -41,13 +39,13 @@ public class ProductsController {
     private final ProductService productService;
     private final ProductAdditionalInfoServiceImpl productAdditionalInfoService;
 
-    @Operation(summary = "Create a new product", description = "Adds a new product to the catalog")
+    @Operation(summary = "Create a new product", description = "Adds a new product to the catalog", tags = "Product")
     @PostMapping
     public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@RequestBody @Valid ProductRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Product created", productService.createProduct(request), HttpStatus.CREATED.value(), "product.created"));
     }
 
-    @Operation(summary = "Upload image for product")
+    @Operation(summary = "Upload image for product", tags = "Product")
     @PostMapping("/upload-image/{productId}")
     public ResponseEntity<ApiResponse<ProductResponse>> uploadImageForProduct(@PathVariable("productId") String productId, @RequestParam("file") MultipartFile file) {
         try {
@@ -59,13 +57,13 @@ public class ProductsController {
         }
     }
 
-    @Operation(summary = "Get product by ID")
+    @Operation(summary = "Get product by ID", tags = "Product")
     @GetMapping("/{productId}")
     public ResponseEntity<ApiResponse<ProductResponse>> getProductById(@PathVariable String productId) {
         return ResponseEntity.ok(ApiResponse.success("Product fetched", productService.getProductById(productId), HttpStatus.OK.value()));
     }
 
-    @Operation(summary = "Delete product by ID")
+    @Operation(summary = "Delete product by ID", tags = "Product")
     @DeleteMapping("/{productId}")
     public ResponseEntity<ApiResponse<String>> deleteProductById(@PathVariable String productId) {
         log.info("Deleting product with id: {}", productId);
@@ -73,7 +71,7 @@ public class ProductsController {
         return ResponseEntity.ok(ApiResponse.success("Delete Request Accepted", "Request Accepted", HttpStatus.ACCEPTED.value()));
     }
 
-    @Operation(summary = "Get all products paginated")
+    @Operation(summary = "Get all products paginated", tags = "Product")
     @PostMapping("/all")
     public ResponseEntity<ApiResponse<PaginatedResponse<ProductResponse>>> getAllProducts(@RequestBody @Valid PaginatedDataRequest paginatedDataRequest) {
 
@@ -86,7 +84,7 @@ public class ProductsController {
                 ApiResponse.success("Fetched all products", paginatedResponse, HttpStatus.OK.value()));
     }
 
-    @Operation(summary = "Get all products by sub-category")
+    @Operation(summary = "Get all products by sub-category", tags = "Product")
     @PostMapping("/by-sub-category")
     public ResponseEntity<ApiResponse<PaginatedResponse<ProductResponse>>> getAllProductsBySubCategory(@RequestParam("subProductCategoryId") String subProductCategoryId, @RequestBody @Valid PaginatedDataRequest paginatedDataRequest) {
 
@@ -99,13 +97,13 @@ public class ProductsController {
                 ApiResponse.success(String.format("Fetched all products by sub category: %s", subProductCategoryId), paginatedResponse, HttpStatus.OK.value()));
     }
 
-    @Operation(summary = "Create product main category")
+    @Operation(summary = "Create product main category", tags = "Product Main Category")
     @PostMapping("/main-category")
     public ResponseEntity<ApiResponse<ProductMainCategoryResponse>> createProductMainCategory(@RequestBody @Valid ProductMainCategoryRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Category created", productMainCategoryService.create(request), HttpStatus.CREATED.value()));
     }
 
-    @Operation(summary = "Get main category by ID")
+    @Operation(summary = "Get main category by ID", tags = "Product Main Category")
     @GetMapping("/main-category/{id}")
     public ResponseEntity<ApiResponse<ProductMainCategoryResponse>> getProductMainCategoryById(@PathVariable String id) {
         ProductMainCategoryResponse productMainCategoryResponse = productMainCategoryService.getById(id);
@@ -113,19 +111,19 @@ public class ProductsController {
         return ResponseEntity.ok(ApiResponse.success("Category fetched", productMainCategoryResponse, HttpStatus.OK.value()));
     }
 
-    @Operation(summary = "Get all main categories")
+    @Operation(summary = "Get all main categories", tags = "Product Main Category")
     @GetMapping("/main-category")
     public ResponseEntity<ApiResponse<List<ProductMainCategoryResponse>>> getAllProductMainCategories() {
         return ResponseEntity.ok(ApiResponse.success("All categories fetched", productMainCategoryService.getAll(), HttpStatus.OK.value()));
     }
 
-    @Operation(summary = "Update product main category")
+    @Operation(summary = "Update product main category", tags = "Product Main Category")
     @PutMapping("/main-category/{id}")
     public ResponseEntity<ApiResponse<ProductMainCategoryResponse>> updateProductMainCategory(@PathVariable String id, @RequestBody @Valid ProductMainCategoryRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Category updated", productMainCategoryService.update(id, request), HttpStatus.ACCEPTED.value()));
     }
 
-    @Operation(summary = "Delete product main category")
+    @Operation(summary = "Delete product main category", tags = "Product Main Category")
     @DeleteMapping("/main-category/{id}")
     public ResponseEntity<ApiResponse<String>> deleteProductMainCategory(@PathVariable String id) {
         productMainCategoryService.delete(id);
@@ -133,7 +131,7 @@ public class ProductsController {
     }
 
 
-    @Operation(summary = "Create sub-category")
+    @Operation(summary = "Create sub-category", tags = "Product Sub Category")
     @PostMapping("/sub-category")
     public ResponseEntity<ApiResponse<ProductSubCategoryResponse>> createProductSubCategory(@RequestBody @Valid ProductSubCategoryRequest request) {
         ProductSubCategoryResponse response = productSubCategoryService.create(request);
@@ -141,7 +139,7 @@ public class ProductsController {
                 .body(ApiResponse.success("Sub-category created successfully", response, HttpStatus.CREATED.value()));
     }
 
-    @Operation(summary = "Get all sub-categories")
+    @Operation(summary = "Get all sub-categories", tags = "Product Sub Category")
     @PostMapping("/sub-category-all")
     public ResponseEntity<ApiResponse<PaginatedResponse<ProductSubCategoryResponse>>> getAllProductSubCategories(@RequestBody @Valid PaginatedDataRequest paginatedDataRequest) {
 
@@ -154,14 +152,14 @@ public class ProductsController {
                 ApiResponse.success("Fetched all sub-categories", paginatedResponse, HttpStatus.OK.value()));
     }
 
-    @Operation(summary = "Get sub-category by ID")
+    @Operation(summary = "Get sub-category by ID", tags = "Product Sub Category")
     @GetMapping("/sub-category/{id}")
     public ResponseEntity<ApiResponse<ProductSubCategoryResponse>> getProductSubCategoryById(@PathVariable String id) {
         return ResponseEntity.ok(
                 ApiResponse.success("Sub-category fetched", productSubCategoryService.getById(id), HttpStatus.OK.value()));
     }
 
-    @Operation(summary = "Get all sub-categories by main category")
+    @Operation(summary = "Get all sub-categories by main category", tags = "Product Sub Category")
     @PostMapping("/sub-category-by-main-category")
     public ResponseEntity<ApiResponse<PaginatedResponse<ProductSubCategoryResponse>>> getAllProductSubCategoriesByMainCategory(@RequestParam("mainProductCategoryId") String mainProductCategoryId, @RequestBody @Valid PaginatedDataRequest paginatedDataRequest) {
 
@@ -186,7 +184,7 @@ public class ProductsController {
         }
     }
 
-    @Operation(summary = "Upload multiple images to additional info")
+    @Operation(summary = "Upload multiple images to additional info", tags = "Product")
     @PostMapping("/upload-multiple")
     public ResponseEntity<ApiResponse<String>> uploadMultipleImagesInAdditionalInfo(@RequestParam("productId") String productId, @RequestParam("file") List<MultipartFile> files) {
         productAdditionalInfoService.uploadImage(productId, files);
@@ -202,7 +200,7 @@ public class ProductsController {
                 .body(file);
     }
 
-    @Operation(summary = "Delete additional product info image")
+    @Operation(summary = "Delete additional product info image", tags = "Product Additional Info")
     @DeleteMapping("/product-additional-info/{productAdditionalInfoId}")
     public ResponseEntity<ApiResponse<String>> deleteProductAdditionalInfoId(@PathVariable String productAdditionalInfoId) {
         productAdditionalInfoService.deleteProductAdditionalInfoById(productAdditionalInfoId);
