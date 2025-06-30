@@ -20,10 +20,10 @@ public class Product {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "short_description")
+    @Column(name = "short_description", length = 500)
     private String shortDescription;
 
-    @Column(name = "long_description")
+    @Column(name = "long_description", length = 1000)
     private String longDescription;
 
     @Column(name = "price", nullable = false)

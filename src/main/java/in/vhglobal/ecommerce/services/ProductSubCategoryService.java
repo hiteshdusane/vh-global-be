@@ -14,4 +14,6 @@ public interface ProductSubCategoryService {
     ProductSubCategoryResponse getById(String productSubCategoryId);
 
     Page<ProductSubCategoryResponse> getByMainCategoryId(String mainCategoryId, Pageable pageable, boolean hydrateMainCategory);
+
+    void deleteProductSubCategory(String subProductCategoryId);
 }

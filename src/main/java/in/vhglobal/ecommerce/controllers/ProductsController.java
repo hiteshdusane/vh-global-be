@@ -207,4 +207,10 @@ public class ProductsController {
         return ResponseEntity.ok(ApiResponse.success("Product Additional Info deleted successfully", productAdditionalInfoId, HttpStatus.OK.value()));
     }
 
+    @Operation(summary = "Delete sub category", tags = "Product Sub Category")
+    @DeleteMapping("/sub-category/{subProductCategoryId}")
+    public ResponseEntity<ApiResponse<String>> deleteProductSubCategory(@PathVariable String subProductCategoryId) {
+        productSubCategoryService.deleteProductSubCategory(subProductCategoryId);
+        return ResponseEntity.ok(ApiResponse.success("Product Sub Category deleted successfully", subProductCategoryId, HttpStatus.OK.value()));
+    }
 }
