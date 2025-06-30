@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,6 +22,7 @@ public class ProductMainCategoryServiceImpl implements ProductMainCategoryServic
 
     private final ProductMainCategoryRepository repository;
     private final ProductMainCategoryMapper productMainCategoryMapper;
+    private final ProductSubCategoryService productSubCategoryService;
 
     @Override
     public ProductMainCategoryResponse create(ProductMainCategoryRequest request) {
@@ -59,8 +61,13 @@ public class ProductMainCategoryServiceImpl implements ProductMainCategoryServic
 
     @Override
     public void delete(String id) {
-        log.info("Deleting main product with id: {}", id);
         ProductMainCategory existing = repository.getReferenceById(id);
+        log.info("Deleting main product with id: {}", id);
+        if (Objects.nonNull(existing.getProductSubCategories()) && !existing.getProductSubCategories().isEmpty()) {
+            log.info("Deleting sub products: {}", existing.getProductSubCategories().size());
+            existing.getProductSubCategories().forEach(productSubCategory -> productSubCategoryService.deleteProductSubCategory(productSubCategory.getProductSubCategoryId()));
+        }
         repository.delete(existing);
+        log.info("Deleted main product: {}", existing.getName());
     }
 }

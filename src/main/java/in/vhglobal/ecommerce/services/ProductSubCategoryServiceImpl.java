@@ -8,12 +8,15 @@ import in.vhglobal.ecommerce.entities.products.ProductSubCategory;
 import in.vhglobal.ecommerce.exceptions.BadRequestApiException;
 import in.vhglobal.ecommerce.exceptions.NotFoundApiException;
 import in.vhglobal.ecommerce.repositories.ProductMainCategoryRepository;
+import in.vhglobal.ecommerce.repositories.ProductRepository;
 import in.vhglobal.ecommerce.repositories.ProductSubCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,7 @@ public class ProductSubCategoryServiceImpl implements ProductSubCategoryService 
     private final ProductSubCategoryRepository repository;
     private final ProductMainCategoryRepository mainCategoryRepository;
     private final ProductSubCategoryMapper mapper;
+    private final ProductRepository productRepository;
 
     @Override
     public ProductSubCategoryResponse create(ProductSubCategoryRequest request) {
@@ -57,6 +61,17 @@ public class ProductSubCategoryServiceImpl implements ProductSubCategoryService 
         Page<ProductSubCategory> page = repository
                 .findByProductMainCategory_ProductMainCategoryId(mainCategoryId, pageable);
         return page.map(mapper::toResponse);
+    }
+
+    @Override
+    public void deleteProductSubCategory(String subProductCategoryId) {
+        log.info("Deleting sub product with id: {}", subProductCategoryId);
+        ProductSubCategory existing = repository.getReferenceById(subProductCategoryId);
+        if (Objects.nonNull(existing.getProducts()) && !existing.getProducts().isEmpty()) {
+            log.info("Deleting products: {}", existing.getProducts().size());
+            productRepository.deleteAll(existing.getProducts());
+        }
+        repository.delete(existing);
     }
 
 }
