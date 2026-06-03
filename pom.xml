@@ -8,11 +8,11 @@
         <version>3.4.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>in.vhglobal</groupId>
-    <artifactId>ecommerce</artifactId>
+    <groupId>com.vhnglobal</groupId>
+    <artifactId>vhn-global</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>ecommerce</name>
-    <description>Ecommerce backend for VH Global Product Offerings</description>
+    <name>vhn-global</name>
+    <description>Backend for VHN Global Product Offerings</description>
     <url/>
     <licenses>
         <license/>
