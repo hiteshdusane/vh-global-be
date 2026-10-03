@@ -37,7 +37,11 @@ public class ControllerAdvice {
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleNoResourceFoundException(NoResourceFoundException ex) {
-        log.error("Error: ", ex);
+        // Ignore robots.txt and favicon.ico requests
+        if (ex.getMessage().contains("robots.txt") ||
+                ex.getMessage().contains("favicon.ico")) {
+            return ResponseEntity.notFound().build();
+        }
         NotFoundApiException notFoundApiException = new NotFoundApiException(ex, ex.getMessage(), Set.of(NOT_FOUND));
         return handleApiException(notFoundApiException);
     }
@@ -51,7 +55,6 @@ public class ControllerAdvice {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleAllExceptions(Exception ex) {
-        log.warn("Error", ex);
         InternalServerErrorApiException internalServerErrorApiException = new InternalServerErrorApiException(ex, "Internal Server Error Occurred", Set.of(SERVICE_ERROR));
         return handleApiException(internalServerErrorApiException);
     }
