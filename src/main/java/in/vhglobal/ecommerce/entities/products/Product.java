@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "product")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"productSubCategory", "productAdditionalInfos"})
 public class Product {
 
     @Id
@@ -40,6 +42,5 @@ public class Product {
     private ProductSubCategory productSubCategory;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
     private List<ProductAdditionalInfo> productAdditionalInfos;
 }

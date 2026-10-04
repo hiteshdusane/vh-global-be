@@ -5,12 +5,14 @@ import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "product_sub_category")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"productMainCategory", "products"})
 public class ProductSubCategory {
 
     @Id
@@ -31,7 +33,6 @@ public class ProductSubCategory {
     @JoinColumn(name = "product_main_category_id", nullable = false)
     private ProductMainCategory productMainCategory;
 
-    @ToString.Exclude
     @OneToMany(mappedBy = "productSubCategory", cascade = CascadeType.ALL)
     private List<Product> products;
 }

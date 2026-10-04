@@ -27,9 +27,9 @@ public class ProductMainCategoryServiceImpl implements ProductMainCategoryServic
     @Override
     public ProductMainCategoryResponse create(ProductMainCategoryRequest request) {
         ProductMainCategory productMainCategory = productMainCategoryMapper.toEntity(request);
-        log.info("Saving productMainCategory: {}", productMainCategory);
+        log.info("Saving productMainCategory: {}", productMainCategory.getName());
         ProductMainCategory productMainCategorySaved = repository.save(productMainCategory);
-        log.info("Saved productMainCategory: {}", productMainCategorySaved);
+        log.info("Saved productMainCategory: {}", productMainCategorySaved.getProductMainCategoryId());
         return productMainCategoryMapper.toResponse(productMainCategorySaved);
     }
 
@@ -55,7 +55,7 @@ public class ProductMainCategoryServiceImpl implements ProductMainCategoryServic
         existing.setShortDescription(request.getShortDescription());
         existing.setLongDescription(request.getLongDescription());
         ProductMainCategory updated = repository.save(existing);
-        log.info("Updated ProductMainCategory: {}", updated);
+        log.info("Updated ProductMainCategory: {}", updated.getProductMainCategoryId());
         return productMainCategoryMapper.toResponse(updated);
     }
 

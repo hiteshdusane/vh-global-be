@@ -57,7 +57,7 @@ public class ProductSubCategoryServiceImpl implements ProductSubCategoryService 
         log.info("Finding sub categories by main category id: {}", mainCategoryId);
         ProductMainCategory mainCategory = mainCategoryRepository.findById(mainCategoryId)
                 .orElseThrow(() -> new BadRequestApiException("Main category not found"));
-        log.info("Main category found: {}", mainCategory);
+        log.info("Main category found with id: {}", mainCategory.getProductMainCategoryId());
         Page<ProductSubCategory> page = repository
                 .findByProductMainCategory_ProductMainCategoryId(mainCategoryId, pageable);
         return page.map(mapper::toResponse);
