@@ -7,6 +7,7 @@ import in.vhglobal.ecommerce.exceptions.InternalServerErrorApiException;
 import in.vhglobal.ecommerce.exceptions.NotFoundApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,10 +30,10 @@ public class ControllerAdvice {
         if (Objects.nonNull(ex.getResourceKeys()) && !ex.getResourceKeys().isEmpty()) {
             resourceKey = String.join("|", ex.getResourceKeys());
         }
-        return new ResponseEntity<>(
-                ApiResponse.failure(ex.getMessage(), ex.getStatus(), resourceKey),
-                HttpStatus.valueOf(ex.getStatus())
-        );
+        return ResponseEntity
+                .status(HttpStatus.valueOf(ex.getStatus()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(ApiResponse.failure(ex.getMessage(), ex.getStatus(), resourceKey));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
