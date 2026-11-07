@@ -1,5 +1,6 @@
 package in.vhglobal.ecommerce.dtos.reponse;
 
+import in.vhglobal.ecommerce.entities.products.ProductStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,7 @@ import java.util.Set;
 public class ProductResponse {
 
     private String productId;
+    private ProductStatus status;
     private String name;
     private String shortDescription;
     private String longDescription;

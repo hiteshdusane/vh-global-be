@@ -14,11 +14,28 @@ public interface ProductService {
 
     ProductResponse uploadImageForProduct(String productId, MultipartFile file) throws IOException;
 
-    ProductResponse getProductById(String id);
+    default ProductResponse getProductById(String id) {
+        return getProductById(id, false);
+    }
 
-    Page<ProductResponse> getAllProducts(Pageable pageable, boolean hydrateSubCategory);
+    ProductResponse getProductById(String id, boolean includeDeleted);
 
-    Page<ProductResponse> getBySubCategoryId(String subCategoryId, Pageable pageable, boolean hydrateSubCategory);
+    default Page<ProductResponse> getAllProducts(Pageable pageable, boolean hydrateSubCategory) {
+        return getAllProducts(pageable, hydrateSubCategory, false);
+    }
 
-    void deleteProduct(String productId);
+    Page<ProductResponse> getAllProducts(Pageable pageable, boolean hydrateSubCategory, boolean includeDeleted);
+
+    default Page<ProductResponse> getBySubCategoryId(String subCategoryId, Pageable pageable, boolean hydrateSubCategory) {
+        return getBySubCategoryId(subCategoryId, pageable, hydrateSubCategory, false);
+    }
+
+    Page<ProductResponse> getBySubCategoryId(String subCategoryId, Pageable pageable, boolean hydrateSubCategory,
+                                         boolean includeDeleted);
+
+    default void deleteProduct(String productId) {
+        deleteProduct(productId, false);
+    }
+
+    void deleteProduct(String productId, boolean hardDelete);
 }

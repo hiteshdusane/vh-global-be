@@ -4,6 +4,7 @@ import in.vhglobal.ecommerce.dtos.reponse.*;
 import in.vhglobal.ecommerce.dtos.request.PaginatedDataRequest;
 import in.vhglobal.ecommerce.dtos.request.ProductMainCategoryRequest;
 import in.vhglobal.ecommerce.dtos.request.ProductRequest;
+import in.vhglobal.ecommerce.dtos.request.ProductPaginationRequest;
 import in.vhglobal.ecommerce.dtos.request.ProductSubCategoryRequest;
 import in.vhglobal.ecommerce.exceptions.InternalServerErrorApiException;
 import in.vhglobal.ecommerce.services.ProductAdditionalInfoServiceImpl;
@@ -59,25 +60,27 @@ public class ProductsController {
 
     @Operation(summary = "Get product by ID", tags = "Product")
     @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductResponse>> getProductById(@PathVariable String productId) {
-        return ResponseEntity.ok(ApiResponse.success("Product fetched", productService.getProductById(productId), HttpStatus.OK.value()));
+    public ResponseEntity<ApiResponse<ProductResponse>> getProductById(@PathVariable String productId,
+            @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted) {
+        return ResponseEntity.ok(ApiResponse.success("Product fetched", productService.getProductById(productId, includeDeleted), HttpStatus.OK.value()));
     }
 
-    @Operation(summary = "Delete product by ID", tags = "Product")
+    @Operation(summary = "Delete product by ID", description = "Soft deletes by default. Set hardDelete=true to permanently delete the product and its images.", tags = "Product")
     @DeleteMapping("/{productId}")
-    public ResponseEntity<ApiResponse<String>> deleteProductById(@PathVariable String productId) {
-        log.info("Deleting product with id: {}", productId);
-        productService.deleteProduct(productId);
+    public ResponseEntity<ApiResponse<String>> deleteProductById(@PathVariable String productId,
+            @RequestParam(name = "hardDelete", defaultValue = "false") boolean hardDelete) {
+        log.info("Deleting product with id: {}, hardDelete: {}", productId, hardDelete);
+        productService.deleteProduct(productId, hardDelete);
         return ResponseEntity.ok(ApiResponse.success("Delete Request Accepted", "Request Accepted", HttpStatus.ACCEPTED.value()));
     }
 
     @Operation(summary = "Get all products paginated", tags = "Product")
     @PostMapping("/all")
-    public ResponseEntity<ApiResponse<PaginatedResponse<ProductResponse>>> getAllProducts(@RequestBody @Valid PaginatedDataRequest paginatedDataRequest) {
+    public ResponseEntity<ApiResponse<PaginatedResponse<ProductResponse>>> getAllProducts(@RequestBody @Valid ProductPaginationRequest paginatedDataRequest) {
 
         Sort sort = paginatedDataRequest.getSortDi().equalsIgnoreCase("desc") ? Sort.by(paginatedDataRequest.getSortBy()).descending() : Sort.by(paginatedDataRequest.getSortBy()).ascending();
         Pageable pageable = PageRequest.of(paginatedDataRequest.getPage(), paginatedDataRequest.getPageSize(), sort);
-        Page<ProductResponse> result = productService.getAllProducts(pageable, paginatedDataRequest.getHydrateMainCategory());
+        Page<ProductResponse> result = productService.getAllProducts(pageable, paginatedDataRequest.getHydrateMainCategory(), Boolean.TRUE.equals(paginatedDataRequest.getIncludeDeleted()));
 
         PaginatedResponse<ProductResponse> paginatedResponse = PaginatedResponse.fromPage(result);
         return ResponseEntity.ok(
@@ -86,11 +89,11 @@ public class ProductsController {
 
     @Operation(summary = "Get all products by sub-category", tags = "Product")
     @PostMapping("/by-sub-category")
-    public ResponseEntity<ApiResponse<PaginatedResponse<ProductResponse>>> getAllProductsBySubCategory(@RequestParam("subProductCategoryId") String subProductCategoryId, @RequestBody @Valid PaginatedDataRequest paginatedDataRequest) {
+    public ResponseEntity<ApiResponse<PaginatedResponse<ProductResponse>>> getAllProductsBySubCategory(@RequestParam("subProductCategoryId") String subProductCategoryId, @RequestBody @Valid ProductPaginationRequest paginatedDataRequest) {
 
         Sort sort = paginatedDataRequest.getSortDi().equalsIgnoreCase("desc") ? Sort.by(paginatedDataRequest.getSortBy()).descending() : Sort.by(paginatedDataRequest.getSortBy()).ascending();
         Pageable pageable = PageRequest.of(paginatedDataRequest.getPage(), paginatedDataRequest.getPageSize(), sort);
-        Page<ProductResponse> result = productService.getBySubCategoryId(subProductCategoryId, pageable, paginatedDataRequest.getHydrateMainCategory());
+        Page<ProductResponse> result = productService.getBySubCategoryId(subProductCategoryId, pageable, paginatedDataRequest.getHydrateMainCategory(), Boolean.TRUE.equals(paginatedDataRequest.getIncludeDeleted()));
 
         PaginatedResponse<ProductResponse> paginatedResponse = PaginatedResponse.fromPage(result);
         return ResponseEntity.ok(

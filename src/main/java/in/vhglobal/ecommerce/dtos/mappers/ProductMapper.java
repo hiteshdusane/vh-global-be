@@ -17,6 +17,7 @@ public abstract class ProductMapper {
     @Value("${image.base-url}")
     String baseUrl;
 
+    @Mapping(target = "status", constant = "ACTIVE")
     public abstract Product toEntity(ProductRequest request);
 
     @Mapping(target = "additionalImageUrls", expression = "java(additionalImageUrls(product))")
