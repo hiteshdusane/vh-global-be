@@ -2,6 +2,8 @@ package in.vhglobal.ecommerce.entities.products;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.List;
 
@@ -32,6 +34,12 @@ public class ProductSubCategory {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_main_category_id", nullable = false)
     private ProductMainCategory productMainCategory;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "status", length = 20)
+    @Builder.Default
+    private ProductStatus status = ProductStatus.ACTIVE;
 
     @OneToMany(mappedBy = "productSubCategory", cascade = CascadeType.ALL)
     private List<Product> products;

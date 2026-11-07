@@ -9,11 +9,27 @@ public interface ProductSubCategoryService {
 
     ProductSubCategoryResponse create(ProductSubCategoryRequest request);
 
-    Page<ProductSubCategoryResponse> getAll(Pageable pageable, boolean hydrateMainCategory);
+    default Page<ProductSubCategoryResponse> getAll(Pageable pageable, boolean hydrateMainCategory) {
+        return getAll(pageable, hydrateMainCategory, false);
+    }
 
-    ProductSubCategoryResponse getById(String productSubCategoryId);
+    Page<ProductSubCategoryResponse> getAll(Pageable pageable, boolean hydrateMainCategory, boolean includeDeleted);
 
-    Page<ProductSubCategoryResponse> getByMainCategoryId(String mainCategoryId, Pageable pageable, boolean hydrateMainCategory);
+    default ProductSubCategoryResponse getById(String productSubCategoryId) {
+        return getById(productSubCategoryId, false);
+    }
 
-    void deleteProductSubCategory(String subProductCategoryId);
+    ProductSubCategoryResponse getById(String productSubCategoryId, boolean includeDeleted);
+
+    default Page<ProductSubCategoryResponse> getByMainCategoryId(String mainCategoryId, Pageable pageable, boolean hydrateMainCategory) {
+        return getByMainCategoryId(mainCategoryId, pageable, hydrateMainCategory, false);
+    }
+
+    Page<ProductSubCategoryResponse> getByMainCategoryId(String mainCategoryId, Pageable pageable, boolean hydrateMainCategory, boolean includeDeleted);
+
+    default void deleteProductSubCategory(String subProductCategoryId) {
+        deleteProductSubCategory(subProductCategoryId, false);
+    }
+
+    void deleteProductSubCategory(String subProductCategoryId, boolean hardDelete);
 }

@@ -8,7 +8,8 @@ import in.vhglobal.ecommerce.entities.products.ProductSubCategory;
 import in.vhglobal.ecommerce.exceptions.BadRequestApiException;
 import in.vhglobal.ecommerce.exceptions.NotFoundApiException;
 import in.vhglobal.ecommerce.repositories.ProductMainCategoryRepository;
-import in.vhglobal.ecommerce.repositories.ProductRepository;
+import in.vhglobal.ecommerce.entities.products.ProductStatus;
+import org.springframework.transaction.annotation.Transactional;
 import in.vhglobal.ecommerce.repositories.ProductSubCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class ProductSubCategoryServiceImpl implements ProductSubCategoryService 
     private final ProductSubCategoryRepository repository;
     private final ProductMainCategoryRepository mainCategoryRepository;
     private final ProductSubCategoryMapper mapper;
-    private final ProductRepository productRepository;
+    private final ProductService productService;
 
     @Override
     public ProductSubCategoryResponse create(ProductSubCategoryRequest request) {
@@ -40,38 +41,46 @@ public class ProductSubCategoryServiceImpl implements ProductSubCategoryService 
     }
 
     @Override
-    public Page<ProductSubCategoryResponse> getAll(Pageable pageable, boolean hydrateMainCategory) {
-        Page<ProductSubCategory> page = repository.findAll(pageable);
+    public Page<ProductSubCategoryResponse> getAll(Pageable pageable, boolean hydrateMainCategory, boolean includeDeleted) {
+        Page<ProductSubCategory> page = repository.findAllVisible(includeDeleted, pageable);
         return page.map(mapper::toResponse);
     }
 
     @Override
-    public ProductSubCategoryResponse getById(String productSubCategoryId) {
-        return repository.findByIdWithMainCategory(productSubCategoryId)
+    public ProductSubCategoryResponse getById(String productSubCategoryId, boolean includeDeleted) {
+        return repository.findVisibleById(productSubCategoryId, includeDeleted)
                 .map(mapper::toResponse)
                 .orElseThrow(() -> new NotFoundApiException("Sub category not found"));
     }
 
     @Override
-    public Page<ProductSubCategoryResponse> getByMainCategoryId(String mainCategoryId, Pageable pageable, boolean hydrateMainCategory) {
+    public Page<ProductSubCategoryResponse> getByMainCategoryId(String mainCategoryId, Pageable pageable, boolean hydrateMainCategory, boolean includeDeleted) {
         log.info("Finding sub categories by main category id: {}", mainCategoryId);
         ProductMainCategory mainCategory = mainCategoryRepository.findById(mainCategoryId)
                 .orElseThrow(() -> new BadRequestApiException("Main category not found"));
         log.info("Main category found with id: {}", mainCategory.getProductMainCategoryId());
         Page<ProductSubCategory> page = repository
-                .findByProductMainCategory_ProductMainCategoryId(mainCategoryId, pageable);
+                .findVisibleByMainCategoryId(mainCategoryId, includeDeleted, pageable);
         return page.map(mapper::toResponse);
     }
 
     @Override
-    public void deleteProductSubCategory(String subProductCategoryId) {
+    @Transactional
+    public void deleteProductSubCategory(String subProductCategoryId, boolean hardDelete) {
         log.info("Deleting sub product with id: {}", subProductCategoryId);
-        ProductSubCategory existing = repository.getReferenceById(subProductCategoryId);
+        ProductSubCategory existing = repository.findById(subProductCategoryId)
+                .orElseThrow(() -> new NotFoundApiException("Sub category not found"));
         if (Objects.nonNull(existing.getProducts()) && !existing.getProducts().isEmpty()) {
             log.info("Deleting products: {}", existing.getProducts().size());
-            productRepository.deleteAll(existing.getProducts());
+            existing.getProducts().forEach(product ->
+                    productService.deleteProductSynchronously(product.getProductId(), hardDelete));
         }
-        repository.delete(existing);
+        if (hardDelete) {
+            repository.delete(existing);
+        } else {
+            existing.setStatus(ProductStatus.DELETED);
+            repository.save(existing);
+        }
     }
 
 }

@@ -6,7 +6,8 @@ import in.vhglobal.ecommerce.dtos.request.ProductMainCategoryRequest;
 import in.vhglobal.ecommerce.entities.products.ProductMainCategory;
 import in.vhglobal.ecommerce.exceptions.NotFoundApiException;
 import in.vhglobal.ecommerce.repositories.ProductMainCategoryRepository;
-import jakarta.persistence.EntityNotFoundException;
+import in.vhglobal.ecommerce.entities.products.ProductStatus;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,18 +35,14 @@ public class ProductMainCategoryServiceImpl implements ProductMainCategoryServic
     }
 
     @Override
-    public ProductMainCategoryResponse getById(String id) {
-        try {
-            ProductMainCategory productMainCategory = repository.getReferenceById(id);
-            return productMainCategoryMapper.toResponse(productMainCategory);
-        } catch (EntityNotFoundException e) {
-            throw new NotFoundApiException("Product Main Category Not Found for id: " + id);
-        }
+    public ProductMainCategoryResponse getById(String id, boolean includeDeleted) {
+        return repository.findVisibleById(id, includeDeleted).map(productMainCategoryMapper::toResponse)
+                .orElseThrow(() -> new NotFoundApiException("Product Main Category Not Found for id: " + id));
     }
 
     @Override
-    public List<ProductMainCategoryResponse> getAll() {
-        return repository.findAll().stream().map(productMainCategoryMapper::toResponse).collect(Collectors.toList());
+    public List<ProductMainCategoryResponse> getAll(boolean includeDeleted) {
+        return repository.findAllVisible(includeDeleted).stream().map(productMainCategoryMapper::toResponse).collect(Collectors.toList());
     }
 
     @Override
@@ -60,14 +57,21 @@ public class ProductMainCategoryServiceImpl implements ProductMainCategoryServic
     }
 
     @Override
-    public void delete(String id) {
-        ProductMainCategory existing = repository.getReferenceById(id);
+    @Transactional
+    public void delete(String id, boolean hardDelete) {
+        ProductMainCategory existing = repository.findById(id)
+                .orElseThrow(() -> new NotFoundApiException("Product Main Category Not Found for id: " + id));
         log.info("Deleting main product with id: {}", id);
         if (Objects.nonNull(existing.getProductSubCategories()) && !existing.getProductSubCategories().isEmpty()) {
             log.info("Deleting sub products: {}", existing.getProductSubCategories().size());
-            existing.getProductSubCategories().forEach(productSubCategory -> productSubCategoryService.deleteProductSubCategory(productSubCategory.getProductSubCategoryId()));
+            existing.getProductSubCategories().forEach(productSubCategory -> productSubCategoryService.deleteProductSubCategory(productSubCategory.getProductSubCategoryId(), hardDelete));
         }
-        repository.delete(existing);
+        if (hardDelete) {
+            repository.delete(existing);
+        } else {
+            existing.setStatus(ProductStatus.DELETED);
+            repository.save(existing);
+        }
         log.info("Deleted main product: {}", existing.getName());
     }
 }

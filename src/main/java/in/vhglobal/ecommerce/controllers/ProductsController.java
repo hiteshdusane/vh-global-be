@@ -1,7 +1,6 @@
 package in.vhglobal.ecommerce.controllers;
 
 import in.vhglobal.ecommerce.dtos.reponse.*;
-import in.vhglobal.ecommerce.dtos.request.PaginatedDataRequest;
 import in.vhglobal.ecommerce.dtos.request.ProductMainCategoryRequest;
 import in.vhglobal.ecommerce.dtos.request.ProductRequest;
 import in.vhglobal.ecommerce.dtos.request.ProductPaginationRequest;
@@ -108,16 +107,18 @@ public class ProductsController {
 
     @Operation(summary = "Get main category by ID", tags = "Product Main Category")
     @GetMapping("/main-category/{id}")
-    public ResponseEntity<ApiResponse<ProductMainCategoryResponse>> getProductMainCategoryById(@PathVariable String id) {
-        ProductMainCategoryResponse productMainCategoryResponse = productMainCategoryService.getById(id);
+    public ResponseEntity<ApiResponse<ProductMainCategoryResponse>> getProductMainCategoryById(@PathVariable String id,
+            @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted) {
+        ProductMainCategoryResponse productMainCategoryResponse = productMainCategoryService.getById(id, includeDeleted);
         log.info("productMainCategoryResponse received: {}", productMainCategoryResponse);
         return ResponseEntity.ok(ApiResponse.success("Category fetched", productMainCategoryResponse, HttpStatus.OK.value()));
     }
 
     @Operation(summary = "Get all main categories", tags = "Product Main Category")
     @GetMapping("/main-category")
-    public ResponseEntity<ApiResponse<List<ProductMainCategoryResponse>>> getAllProductMainCategories() {
-        return ResponseEntity.ok(ApiResponse.success("All categories fetched", productMainCategoryService.getAll(), HttpStatus.OK.value()));
+    public ResponseEntity<ApiResponse<List<ProductMainCategoryResponse>>> getAllProductMainCategories(
+            @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted) {
+        return ResponseEntity.ok(ApiResponse.success("All categories fetched", productMainCategoryService.getAll(includeDeleted), HttpStatus.OK.value()));
     }
 
     @Operation(summary = "Update product main category", tags = "Product Main Category")
@@ -126,10 +127,11 @@ public class ProductsController {
         return ResponseEntity.ok(ApiResponse.success("Category updated", productMainCategoryService.update(id, request), HttpStatus.ACCEPTED.value()));
     }
 
-    @Operation(summary = "Delete product main category", tags = "Product Main Category")
+    @Operation(summary = "Delete product main category", description = "Soft deletes the category and descendants by default. Set hardDelete=true to permanently delete them and their images.", tags = "Product Main Category")
     @DeleteMapping("/main-category/{id}")
-    public ResponseEntity<ApiResponse<String>> deleteProductMainCategory(@PathVariable String id) {
-        productMainCategoryService.delete(id);
+    public ResponseEntity<ApiResponse<String>> deleteProductMainCategory(@PathVariable String id,
+            @RequestParam(name = "hardDelete", defaultValue = "false") boolean hardDelete) {
+        productMainCategoryService.delete(id, hardDelete);
         return ResponseEntity.ok(ApiResponse.success("Category deleted", id, HttpStatus.OK.value()));
     }
 
@@ -144,11 +146,11 @@ public class ProductsController {
 
     @Operation(summary = "Get all sub-categories", tags = "Product Sub Category")
     @PostMapping("/sub-category-all")
-    public ResponseEntity<ApiResponse<PaginatedResponse<ProductSubCategoryResponse>>> getAllProductSubCategories(@RequestBody @Valid PaginatedDataRequest paginatedDataRequest) {
+    public ResponseEntity<ApiResponse<PaginatedResponse<ProductSubCategoryResponse>>> getAllProductSubCategories(@RequestBody @Valid ProductPaginationRequest paginatedDataRequest) {
 
         Sort sort = paginatedDataRequest.getSortDi().equalsIgnoreCase("desc") ? Sort.by(paginatedDataRequest.getSortBy()).descending() : Sort.by(paginatedDataRequest.getSortBy()).ascending();
         Pageable pageable = PageRequest.of(paginatedDataRequest.getPage(), paginatedDataRequest.getPageSize(), sort);
-        Page<ProductSubCategoryResponse> result = productSubCategoryService.getAll(pageable, paginatedDataRequest.getHydrateMainCategory());
+        Page<ProductSubCategoryResponse> result = productSubCategoryService.getAll(pageable, paginatedDataRequest.getHydrateMainCategory(), Boolean.TRUE.equals(paginatedDataRequest.getIncludeDeleted()));
 
         PaginatedResponse<ProductSubCategoryResponse> paginatedResponse = PaginatedResponse.fromPage(result);
         return ResponseEntity.ok(
@@ -157,18 +159,19 @@ public class ProductsController {
 
     @Operation(summary = "Get sub-category by ID", tags = "Product Sub Category")
     @GetMapping("/sub-category/{id}")
-    public ResponseEntity<ApiResponse<ProductSubCategoryResponse>> getProductSubCategoryById(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<ProductSubCategoryResponse>> getProductSubCategoryById(@PathVariable String id,
+            @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted) {
         return ResponseEntity.ok(
-                ApiResponse.success("Sub-category fetched", productSubCategoryService.getById(id), HttpStatus.OK.value()));
+                ApiResponse.success("Sub-category fetched", productSubCategoryService.getById(id, includeDeleted), HttpStatus.OK.value()));
     }
 
     @Operation(summary = "Get all sub-categories by main category", tags = "Product Sub Category")
     @PostMapping("/sub-category-by-main-category")
-    public ResponseEntity<ApiResponse<PaginatedResponse<ProductSubCategoryResponse>>> getAllProductSubCategoriesByMainCategory(@RequestParam("mainProductCategoryId") String mainProductCategoryId, @RequestBody @Valid PaginatedDataRequest paginatedDataRequest) {
+    public ResponseEntity<ApiResponse<PaginatedResponse<ProductSubCategoryResponse>>> getAllProductSubCategoriesByMainCategory(@RequestParam("mainProductCategoryId") String mainProductCategoryId, @RequestBody @Valid ProductPaginationRequest paginatedDataRequest) {
 
         Sort sort = paginatedDataRequest.getSortDi().equalsIgnoreCase("desc") ? Sort.by(paginatedDataRequest.getSortBy()).descending() : Sort.by(paginatedDataRequest.getSortBy()).ascending();
         Pageable pageable = PageRequest.of(paginatedDataRequest.getPage(), paginatedDataRequest.getPageSize(), sort);
-        Page<ProductSubCategoryResponse> result = productSubCategoryService.getByMainCategoryId(mainProductCategoryId, pageable, paginatedDataRequest.getHydrateMainCategory());
+        Page<ProductSubCategoryResponse> result = productSubCategoryService.getByMainCategoryId(mainProductCategoryId, pageable, paginatedDataRequest.getHydrateMainCategory(), Boolean.TRUE.equals(paginatedDataRequest.getIncludeDeleted()));
 
         PaginatedResponse<ProductSubCategoryResponse> paginatedResponse = PaginatedResponse.fromPage(result);
         return ResponseEntity.ok(
@@ -210,10 +213,11 @@ public class ProductsController {
         return ResponseEntity.ok(ApiResponse.success("Product Additional Info deleted successfully", productAdditionalInfoId, HttpStatus.OK.value()));
     }
 
-    @Operation(summary = "Delete sub category", tags = "Product Sub Category")
+    @Operation(summary = "Delete sub category", description = "Soft deletes the category and products by default. Set hardDelete=true to permanently delete them and their images.", tags = "Product Sub Category")
     @DeleteMapping("/sub-category/{subProductCategoryId}")
-    public ResponseEntity<ApiResponse<String>> deleteProductSubCategory(@PathVariable String subProductCategoryId) {
-        productSubCategoryService.deleteProductSubCategory(subProductCategoryId);
+    public ResponseEntity<ApiResponse<String>> deleteProductSubCategory(@PathVariable String subProductCategoryId,
+            @RequestParam(name = "hardDelete", defaultValue = "false") boolean hardDelete) {
+        productSubCategoryService.deleteProductSubCategory(subProductCategoryId, hardDelete);
         return ResponseEntity.ok(ApiResponse.success("Product Sub Category deleted successfully", subProductCategoryId, HttpStatus.OK.value()));
     }
 }

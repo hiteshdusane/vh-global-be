@@ -86,6 +86,13 @@ public class ProductServiceImpl implements ProductService {
     @Async
     @Transactional
     public void deleteProduct(String productId, boolean hardDelete) {
+        deleteProductSynchronously(productId, hardDelete);
+    }
+
+    // Category cascades must finish deleting children before deleting the parent.
+    @Override
+    @Transactional
+    public void deleteProductSynchronously(String productId, boolean hardDelete) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundApiException("Product not found with ID: " + productId));
         if (!hardDelete) {
@@ -103,7 +110,9 @@ public class ProductServiceImpl implements ProductService {
         if (Objects.nonNull(additionalInfos) && !additionalInfos.isEmpty()) {
             log.info("Deleting additional {} infos of product: {}", additionalInfos.size(), product.getName());
             additionalInfos.forEach(productAdditionalInfo -> {
-                imageStorageService.delete(productAdditionalInfo.getImagePath());
+                if (productAdditionalInfo.getImagePath() != null && !productAdditionalInfo.getImagePath().isBlank()) {
+                    imageStorageService.delete(productAdditionalInfo.getImagePath());
+                }
             });
             productAdditionalInfoRepository.deleteAll(additionalInfos);
         }

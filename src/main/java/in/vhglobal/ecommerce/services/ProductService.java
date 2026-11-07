@@ -38,4 +38,6 @@ public interface ProductService {
     }
 
     void deleteProduct(String productId, boolean hardDelete);
+
+    void deleteProductSynchronously(String productId, boolean hardDelete);
 }

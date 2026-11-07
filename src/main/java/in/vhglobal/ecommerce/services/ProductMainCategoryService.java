@@ -9,11 +9,23 @@ public interface ProductMainCategoryService {
 
     ProductMainCategoryResponse create(ProductMainCategoryRequest request);
 
-    ProductMainCategoryResponse getById(String id);
+    default ProductMainCategoryResponse getById(String id) {
+        return getById(id, false);
+    }
 
-    List<ProductMainCategoryResponse> getAll();
+    ProductMainCategoryResponse getById(String id, boolean includeDeleted);
+
+    default List<ProductMainCategoryResponse> getAll() {
+        return getAll(false);
+    }
+
+    List<ProductMainCategoryResponse> getAll(boolean includeDeleted);
 
     ProductMainCategoryResponse update(String id, ProductMainCategoryRequest request);
 
-    void delete(String id);
+    default void delete(String id) {
+        delete(id, false);
+    }
+
+    void delete(String id, boolean hardDelete);
 }
