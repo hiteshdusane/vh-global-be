@@ -58,6 +58,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductResponse getProductById(String id, boolean includeDeleted) {
         Product product = productRepository.findVisibleById(id, includeDeleted)
                 .orElseThrow(() -> new NotFoundApiException(String.format("Product not found with id: %s", id)));
@@ -65,12 +66,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getAllProducts(Pageable pageable, boolean hydrateSubCategory, boolean includeDeleted) {
         Page<Product> page = productRepository.findAllVisible(includeDeleted, pageable);
         return page.map(productMapper::toResponse);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getBySubCategoryId(String subCategoryId, Pageable pageable, boolean hydrateSubCategory,
                                                 boolean includeDeleted) {
         log.info("Finding products by sub category id: {}", subCategoryId);

@@ -1,6 +1,8 @@
 package in.vhglobal.ecommerce.repositories;
 
 import in.vhglobal.ecommerce.entities.products.Product;
+import in.vhglobal.ecommerce.entities.products.ProductAdditionalInfo;
+import org.hibernate.SessionFactory;
 import in.vhglobal.ecommerce.entities.products.ProductMainCategory;
 import in.vhglobal.ecommerce.entities.products.ProductStatus;
 import in.vhglobal.ecommerce.entities.products.ProductSubCategory;
@@ -37,6 +39,35 @@ class ProductVisibilityTest {
         product("D", ProductStatus.ACTIVE, category("Other", main));
         entityManager.flush();
         entityManager.clear();
+    }
+
+    @Test
+    void additionalImagesAreFetchedTogetherWithoutChangingProductPagination() {
+        for (Product product : repository.findAll()) {
+            entityManager.persist(ProductAdditionalInfo.builder().product(product)
+                    .imagePath(product.getProductId() + ".png").build());
+        }
+        entityManager.flush();
+        entityManager.clear();
+        var statistics = entityManager.getEntityManager().getEntityManagerFactory()
+                .unwrap(SessionFactory.class).getStatistics();
+        boolean previouslyEnabled = statistics.isStatisticsEnabled();
+        statistics.setStatisticsEnabled(true);
+        statistics.clear();
+        try {
+            var page = repository.findAllVisible(false, PageRequest.of(0, 2, Sort.by("name")));
+            long beforeImages = statistics.getPrepareStatementCount();
+            for (Product product : page) {
+                assertThat(product.getProductAdditionalInfos()).hasSize(1);
+                assertThat(product.getProductAdditionalInfos().get(0).getImagePath())
+                        .isEqualTo(product.getProductId() + ".png");
+            }
+            assertThat(statistics.getPrepareStatementCount() - beforeImages).isEqualTo(1);
+            assertThat(page.getTotalElements()).isEqualTo(3);
+            assertThat(page.getNumberOfElements()).isEqualTo(2);
+        } finally {
+            statistics.setStatisticsEnabled(previouslyEnabled);
+        }
     }
 
     @Test

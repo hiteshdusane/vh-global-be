@@ -3,6 +3,7 @@ package in.vhglobal.ecommerce.entities.products;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.type.SqlTypes;
 import java.util.List;
 
@@ -50,5 +51,6 @@ public class Product {
     private ProductSubCategory productSubCategory;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<ProductAdditionalInfo> productAdditionalInfos;
 }

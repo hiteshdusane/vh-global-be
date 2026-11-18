@@ -65,6 +65,23 @@ class ProductRetrievalTest {
     }
 
     @Test
+    void listEndpointsPreserveSupportForLargePages() throws Exception {
+        var pageable = PageRequest.of(0, 1000, Sort.by("name"));
+        when(service.getAllProducts(pageable, false, false)).thenReturn(Page.empty(pageable));
+        when(service.getBySubCategoryId("category", pageable, false, false)).thenReturn(Page.empty(pageable));
+
+        mvc.perform(post("/api/v1/products/all").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"pageSize\":1000}"))
+                .andExpect(status().isOk());
+        mvc.perform(post("/api/v1/products/by-sub-category").param("subProductCategoryId", "category")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"pageSize\":1000}"))
+                .andExpect(status().isOk());
+
+        verify(service).getAllProducts(pageable, false, false);
+        verify(service).getBySubCategoryId("category", pageable, false, false);
+    }
+
+    @Test
     void idEndpointDefaultsToFalseAndAllowsExplicitOptIn() throws Exception {
         when(service.getProductById(eq("product"), anyBoolean())).thenReturn(new ProductResponse());
         mvc.perform(get("/api/v1/products/product")).andExpect(status().isOk());
